@@ -1,0 +1,67 @@
+[project]
+name = "quiz-backend"
+version = "0.1.0"
+description = "Backend del quiz: modelo de datos, sync del markdown y (próximamente) la API"
+requires-python = ">=3.12"
+dependencies = [
+    "sqlalchemy>=2.0,<2.1",
+    "alembic>=1.13",
+    "psycopg[binary]>=3.2",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "ruff>=0.6",
+    "import-linter>=2.0",
+]
+
+[tool.uv]
+# Aplicación, no librería: solo se instalan las dependencias.
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# "." para `app`; ".." para `quizfmt`, que vive en la raíz del repo.
+pythonpath = [".", ".."]
+markers = ["integration: necesita el Postgres de docker compose (docker compose up -d db)"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.lint.per-file-ignores]
+# Código generado por Alembic.
+"alembic/versions/*" = ["E501", "UP", "I"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app", "quizfmt"]
+
+[tool.importlinter]
+root_package = "app"
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "Capas hexagonales: las dependencias apuntan hacia dentro"
+type = "layers"
+layers = [
+    "app.cli",
+    "app.infrastructure",
+    "app.application",
+    "app.domain",
+]
+
+[[tool.importlinter.contracts]]
+name = "El dominio es puro: sin frameworks ni librerías externas"
+type = "forbidden"
+source_modules = ["app.domain"]
+forbidden_modules = ["sqlalchemy", "alembic", "psycopg", "pydantic", "fastapi", "quizfmt"]
+
+[[tool.importlinter.contracts]]
+name = "La aplicación no conoce la persistencia ni el parser"
+type = "forbidden"
+source_modules = ["app.application"]
+forbidden_modules = ["sqlalchemy", "alembic", "psycopg", "pydantic", "fastapi", "quizfmt"]

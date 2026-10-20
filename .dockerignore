@@ -1,0 +1,11 @@
+# El contexto es la raíz del repo (el backend necesita quizfmt/): solo entra lo que la imagen usa.
+*
+!backend/pyproject.toml
+!backend/uv.lock
+!backend/alembic.ini
+!backend/alembic
+!backend/app
+!quizfmt
+**/__pycache__
+**/*.pyc
+quizfmt/test_*.py
