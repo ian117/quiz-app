@@ -190,6 +190,8 @@ Como el backend registra las respuestas, también califica. Se resuelve gratis e
 - Animaciones ligeras, solo con `transform` y `opacity`.
 - Gamificación visual dentro de la sesión (racha, feedback inmediato), sin cuentas.
 - Tipos generados del OpenAPI.
+- **Decidido:** Tailwind v4 con componentes propios y Motion (`LazyMotion`, ~18 KB gzip diferidos). Pocas pantallas y presupuesto estricto: una librería de UI no se paga sola. Para el router, `#/` a mano (inicio, `#/play/:id`, `#/history`): no hace falta una dependencia.
+- Markdown y resaltado (`react-markdown` + `highlight.js` con solo los lenguajes comunes) y las pantallas de juego e historial son chunks diferidos; el JS inicial queda en unos 88 KB gzip (medido sobre lo que sirve nginx).
 
 ## Infraestructura local: `docker compose up`
 
@@ -224,7 +226,6 @@ Como el backend registra las respuestas, también califica. Se resuelve gratis e
 | Tema | Recomendación |
 |---|---|
 | Preguntas reales "por completar" (106) | Se convierten cuando tengan respuesta |
-| Librería de componentes y animación | Comparar 2-3 opciones para un juego que tenga que ser rápido |
 | Opcional: actualizar `_plantilla.md` del repo fuente | Que documente la numeración y una leyenda única. Ayudaría a que las marcas sean uniformes en el futuro |
 
 ## Siguiente paso (en el host)
@@ -232,4 +233,4 @@ Como el backend registra las respuestas, también califica. Se resuelve gratis e
 1. Lotes de React con `/convert-batch react 1-10`, y así sucesivamente.
 2. ~~`docker-compose.yml` + `sync` + el modelo de datos.~~ Hecho (el sync vive en `backend/`).
 3. ~~Backend: la API sobre el mismo esquema.~~ Hecho (`api` en compose; contrato en `backend/openapi.json`).
-4. Frontend (antes, elegir la librería).
+4. ~~Frontend.~~ Hecho (`web` en compose; ver "Frontend").
