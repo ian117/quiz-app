@@ -44,9 +44,10 @@ Si `ment-it-questions` está en otra ruta, exporta `QUIZ_SOURCE_DIR=/ruta/absolu
 | Convertir un lote de preguntas | `/convert-batch react 1-10` (dentro de Claude Code) |
 | Validar el quiz a mano | `python3 -m quizfmt` |
 | Tests del parser | `python3 quizfmt/test_quizfmt.py` |
-| Levantar lo que existe (`db` + `sync`) | `docker compose up` |
+| Levantar lo que existe (`db`, `sync` y `api`) | `docker compose up` (la API queda en http://localhost:8000, docs en `/docs`) |
 | Re-sincronizar el quiz | `docker compose run --rm sync` |
 | Tests del backend (unitarios + integración) | `docker compose up -d db`, luego `cd backend && .venv/bin/pytest -q` |
+| Regenerar el contrato de la API | `cd backend && PYTHONPATH=.:.. .venv/bin/python -m app.api.openapi > openapi.json` |
 | Arquitectura hexagonal | `cd backend && .venv/bin/lint-imports` |
 | Nueva migración | `cd backend && DATABASE_URL=postgresql+psycopg://quiz:quiz@localhost:5432/quiz .venv/bin/alembic revision --autogenerate -m "..."` |
 
@@ -54,9 +55,8 @@ Los tests de integración usan la base `quiz_test`, nunca `quiz` (guarda el hist
 
 ## Estado
 
-Listo: el harness (reglas, skills, subagentes, hooks), el parser/validador, el modelo de datos con sus migraciones, el sync (`db` + `sync` en compose) y las preguntas de React convertidas hasta ahora.
+Listo: el harness (reglas, skills, subagentes, hooks), el parser/validador, el modelo de datos con sus migraciones, el sync, la API (`db`, `sync` y `api` en compose) y las preguntas de React convertidas hasta ahora.
 
 Pendiente de construir (en este orden):
 1. Lotes de React con `/convert-batch`.
-2. Backend: la API (`api` en compose).
-3. Frontend.
+2. Frontend (antes, elegir la librería de componentes y animación).

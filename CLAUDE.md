@@ -8,7 +8,7 @@ Juego de opción múltiple (uso personal, sin login) para practicar las pregunta
 - `quiz/<categoria>/<tema>.md`: fuente de verdad del quiz. La convención está en la skill `quiz-format`.
 - `quizfmt/`: parser y validador del quiz, compartido por los hooks y el sync. Protegido.
 - `backend/` (incluye el sync, que es un adaptador de entrada: `app/cli/sync.py`), `frontend/`, `docker-compose.yml`: cada uno tiene su regla en `.claude/rules/`, que se carga al tocarlo.
-- `docker compose up` levanta db → sync → api → web.
+- `docker compose up` levanta db → sync → api → web (hoy existen db, sync y api). El contrato de la API es `backend/openapi.json`.
 
 ## Cómo trabajar
 

@@ -18,6 +18,8 @@ from sqlalchemy.exc import OperationalError
 from alembic import command
 from app.infrastructure.orm.models import Base
 
+from .helpers import Quiz
+
 BACKEND = Path(__file__).resolve().parents[2]
 DEFAULT_URL = "postgresql+psycopg://quiz:quiz@localhost:5432/quiz_test"
 
@@ -72,3 +74,8 @@ def engine(database_url: str) -> Iterator[Engine]:
         conn.execute(text(f"TRUNCATE {tables} RESTART IDENTITY CASCADE"))
     yield engine
     engine.dispose()
+
+
+@pytest.fixture
+def quiz(tmp_path: Path, engine: Engine, database_url: str, monkeypatch) -> Quiz:
+    return Quiz(tmp_path, database_url, monkeypatch)

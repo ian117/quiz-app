@@ -128,6 +128,12 @@ answer(id, session_id FK, question_id FK, option_id FK, is_correct, time_ms)  qu
   - Si cambia, se crea una fila nueva y la vieja se retira (`retired_at`).
   - Si un texto retirado vuelve, se reactiva.
   - Nunca se borran opciones, así que `answer.option_id` siempre apunta a una fila que existe, con el texto que se vio.
+- **Orden de las opciones (decidido):** `option` no guarda orden y en el markdown la correcta va primero, así que el backend baraja al servir.
+  - El orden es una función pura de `(session_id, question_id)` y de la identidad de cada opción: `shuffle_option_ids` en `domain/shuffle.py`.
+  - Cada opción se ordena por el SHA-256 de `sesión:pregunta:opción`. No se usa `random` ni `hash()`, porque no son estables entre versiones o procesos.
+  - `GET /sessions/{id}` muestra el mismo orden siempre, sin guardar nada. No hay `position` en `option`.
+  - No depende del orden de entrada, y retirar una opción no mueve a las demás.
+  - Cambiar el algoritmo reordena el historial: un test fija órdenes concretos para avisarlo.
 - `answer` lleva una FK compuesta a `session_question (session_id, question_id)` y `UNIQUE (session_id, question_id)`: solo se responde lo que salió en la sesión, y una vez.
 - `session_question` existe porque `answer` solo guarda lo respondido. Sin ella, una sesión abandonada pierde qué preguntas salieron.
 - **Sin login ni puntaje persistente:** el historial (`session` + `session_question` + `answer`) es el único registro. Las estadísticas futuras (las más falladas, las que nunca han salido) son consultas, sin cambiar el modelo.
@@ -150,9 +156,30 @@ Cada tramo es `{filtro, n, orden}`. Todos los modos se describen con la misma es
 ### API
 
 - `GET /catalog`: áreas, temas y tags, con cuántas preguntas activas tiene cada uno. El front muestra "hay 46" y te deja elegir cuántas (todas por defecto).
-- `POST /sessions`: recibe el plan, elige las preguntas, guarda `session_question` y las devuelve **sin marcar la correcta**.
+- `POST /sessions`: recibe el plan, elige las preguntas, guarda `session_question` y las devuelve **sin marcar la correcta** y con las opciones barajadas (ver "Orden de las opciones").
 - `POST /sessions/{id}/answers`: registra la respuesta, califica y devuelve si acertaste y la explicación.
 - `GET /sessions`, `GET /sessions/{id}`: historial.
+- `GET /health`: para el healthcheck de compose; no es parte del juego.
+
+**El contrato es `backend/openapi.json`**, exportado de la app (`python -m app.api.openapi`). Un test falla si el código y el archivo se desvían, y de ahí salen los tipos del front.
+
+### Reglas de la API (decididas)
+
+- **El plan.** `POST /sessions` recibe `{mode, plan}`:
+  - `mode` es uno de `tema`, `aleatoria`, `especializada`, `entrevista`, `reales`.
+  - `plan` es una lista de 1 a 20 tramos `{topic, topics, area, tags, n, order}`.
+  - `n` ausente o `null` significa todas.
+  - Se rechazan las claves desconocidas.
+- **Filtros de un tramo.** AND entre claves distintas y OR dentro de una lista: `{area: backend, tags: [a, b]}` es "backend Y (a O b)". Para exigir los dos tags habría que cambiar el contrato.
+- **Qué preguntas salen.** Solo las activas (`retired_at` nulo).
+- **Una pregunta no se repite entre tramos:** cada tramo excluye lo que ya salió.
+- **Un tramo con menos preguntas de las pedidas** aporta las que haya, y `session.total` refleja la cifra real. Si el plan entero no encuentra nada, responde 422.
+- **Qué opciones se ven.** Al crear la sesión, solo las activas. Al consultarla (`GET /sessions/{id}`), las activas, más la que se respondió aunque se haya retirado después. `option` no guarda cuándo se creó, así que no se puede reconstruir exactamente "las opciones de aquel día".
+- **Cierre.** `finished_at` se pone al responder la última pregunta. Una sesión abandonada queda abierta, sin endpoint para cerrarla.
+- **Errores.** Sesión inexistente: 404. Responder dos veces la misma pregunta: 409. Pregunta que no salió en la sesión, opción de otra pregunta, plan sin preguntas o cuerpo inválido: 422.
+- **Qué revela cada respuesta.** Solo `answer` (la respuesta dada, `is_correct`, `correct_option_id` y la explicación) lleva la correcta. Una pregunta sin responder no tiene esos campos en el schema.
+- **Límite conocido:** los ids de las opciones se asignan al crearlas y la correcta va primera en el markdown, así que un cliente tramposo podría deducir que la de menor id es la correcta. Para uso personal se acepta; cerrarlo exigiría cambiar el contrato (responder por posición, no por id).
+- **Stack.** SQLAlchemy síncrono (los endpoints son `def`, FastAPI los corre en un pool de hilos). Los endpoints que escriben hacen `commit` de forma explícita; sin commit, al cerrar la sesión se descarta todo. CORS solo para los orígenes de `CORS_ORIGINS` (por defecto, el Vite local).
 
 Como el backend registra las respuestas, también califica. Se resuelve gratis el trade-off anterior de mandar la correcta al front.
 
@@ -170,7 +197,7 @@ Como el backend registra las respuestas, también califica. Se resuelve gratis e
 |---|---|---|
 | `db` | Postgres con sus datos en un volumen nombrado | Primero, con healthcheck |
 | `sync` | Job de un solo uso, con la imagen del backend: `alembic upgrade head && python -m app.cli.sync`. Lee `quiz/` (montado `:ro`), hace upsert y termina | `db` sano |
-| `api` | FastAPI | `sync` terminó bien |
+| `api` | FastAPI, con la imagen del backend; healthcheck en `/health`; puerto solo en localhost | `sync` terminó bien |
 | `web` | React | `api` arriba |
 
 - **Las preguntas en la DB son desechables:** se reconstruyen desde `quiz/`. **El historial no**, así que el volumen se protege y se respalda. Nada de `down -v` sin respaldo.
@@ -204,5 +231,5 @@ Como el backend registra las respuestas, también califica. Se resuelve gratis e
 
 1. Lotes de React con `/convert-batch react 1-10`, y así sucesivamente.
 2. ~~`docker-compose.yml` + `sync` + el modelo de datos.~~ Hecho (el sync vive en `backend/`).
-3. Backend: la API sobre el mismo esquema.
+3. ~~Backend: la API sobre el mismo esquema.~~ Hecho (`api` en compose; contrato en `backend/openapi.json`).
 4. Frontend (antes, elegir la librería).

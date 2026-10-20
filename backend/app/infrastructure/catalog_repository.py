@@ -1,34 +1,12 @@
-"""Repositorio del catálogo sobre SQLAlchemy 2.0, con el mapper dominio <-> ORM."""
+"""Repositorio del catálogo (lo que escribe el sync) sobre SQLAlchemy 2.0."""
 from __future__ import annotations
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
-from app.domain.catalog import Catalog, Option, Question, Topic
+from app.domain.catalog import Catalog, Question
+from app.infrastructure.mappers import question_to_domain, topic_to_domain
 from app.infrastructure.orm.models import OptionRow, QuestionRow, TagRow, TopicRow
-
-# --- mapper -------------------------------------------------------------------------
-
-
-def _topic_to_domain(row: TopicRow) -> Topic:
-    return Topic(slug=row.slug, name=row.name, area=row.area, id=row.id)
-
-
-def _question_to_domain(row: QuestionRow) -> Question:
-    return Question(
-        key=row.key,
-        topic_slug=row.topic.slug,
-        position=row.position,
-        prompt_md=row.prompt_md,
-        explanation_md=row.explanation_md,
-        tags={t.slug for t in row.tags},
-        options=[
-            Option(o.text_md, o.is_correct, o.retired_at, o.id)
-            for o in sorted(row.options, key=lambda o: o.id)
-        ],
-        retired_at=row.retired_at,
-        id=row.id,
-    )
 
 
 class SqlAlchemyCatalogRepository:
@@ -45,8 +23,8 @@ class SqlAlchemyCatalogRepository:
             )
         ).all()
         return Catalog(
-            [_topic_to_domain(t) for t in topics],
-            [_question_to_domain(q) for q in questions],
+            [topic_to_domain(t) for t in topics],
+            [question_to_domain(q) for q in questions],
         )
 
     def save(self, catalog: Catalog) -> None:

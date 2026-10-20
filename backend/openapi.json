@@ -1,0 +1,868 @@
+{
+  "components": {
+    "schemas": {
+      "AnswerIn": {
+        "additionalProperties": false,
+        "properties": {
+          "option_id": {
+            "title": "Option Id",
+            "type": "integer"
+          },
+          "question_id": {
+            "title": "Question Id",
+            "type": "integer"
+          },
+          "time_ms": {
+            "minimum": 0.0,
+            "title": "Time Ms",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "question_id",
+          "option_id",
+          "time_ms"
+        ],
+        "title": "AnswerIn",
+        "type": "object"
+      },
+      "AnswerOut": {
+        "properties": {
+          "correct_option_id": {
+            "title": "Correct Option Id",
+            "type": "integer"
+          },
+          "explanation_md": {
+            "title": "Explanation Md",
+            "type": "string"
+          },
+          "is_correct": {
+            "title": "Is Correct",
+            "type": "boolean"
+          },
+          "option_id": {
+            "title": "Option Id",
+            "type": "integer"
+          },
+          "question_id": {
+            "title": "Question Id",
+            "type": "integer"
+          },
+          "time_ms": {
+            "title": "Time Ms",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "question_id",
+          "option_id",
+          "is_correct",
+          "correct_option_id",
+          "explanation_md",
+          "time_ms"
+        ],
+        "title": "AnswerOut",
+        "type": "object"
+      },
+      "AnswerResultOut": {
+        "properties": {
+          "answer": {
+            "$ref": "#/components/schemas/AnswerOut"
+          },
+          "answered": {
+            "title": "Answered",
+            "type": "integer"
+          },
+          "finished": {
+            "title": "Finished",
+            "type": "boolean"
+          },
+          "score": {
+            "title": "Score",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "answer",
+          "score",
+          "answered",
+          "total",
+          "finished"
+        ],
+        "title": "AnswerResultOut",
+        "type": "object"
+      },
+      "AreaOut": {
+        "properties": {
+          "question_count": {
+            "title": "Question Count",
+            "type": "integer"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          }
+        },
+        "required": [
+          "slug",
+          "question_count"
+        ],
+        "title": "AreaOut",
+        "type": "object"
+      },
+      "CatalogOut": {
+        "properties": {
+          "areas": {
+            "items": {
+              "$ref": "#/components/schemas/AreaOut"
+            },
+            "title": "Areas",
+            "type": "array"
+          },
+          "tags": {
+            "items": {
+              "$ref": "#/components/schemas/TagOut"
+            },
+            "title": "Tags",
+            "type": "array"
+          },
+          "topics": {
+            "items": {
+              "$ref": "#/components/schemas/TopicOut"
+            },
+            "title": "Topics",
+            "type": "array"
+          }
+        },
+        "required": [
+          "areas",
+          "topics",
+          "tags"
+        ],
+        "title": "CatalogOut",
+        "type": "object"
+      },
+      "CreateSessionIn": {
+        "additionalProperties": false,
+        "properties": {
+          "mode": {
+            "$ref": "#/components/schemas/Mode"
+          },
+          "plan": {
+            "items": {
+              "$ref": "#/components/schemas/StretchIn"
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Plan",
+            "type": "array"
+          }
+        },
+        "required": [
+          "mode",
+          "plan"
+        ],
+        "title": "CreateSessionIn",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "Mode": {
+        "enum": [
+          "tema",
+          "aleatoria",
+          "especializada",
+          "entrevista",
+          "reales"
+        ],
+        "title": "Mode",
+        "type": "string"
+      },
+      "OptionOut": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "text_md": {
+            "title": "Text Md",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "text_md"
+        ],
+        "title": "OptionOut",
+        "type": "object"
+      },
+      "Order": {
+        "enum": [
+          "random",
+          "en-orden",
+          "frecuentes-primero"
+        ],
+        "title": "Order",
+        "type": "string"
+      },
+      "QuestionOut": {
+        "properties": {
+          "answer": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AnswerOut"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Solo si ya se respondió: aquí, y solo aquí, viene la correcta"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/OptionOut"
+            },
+            "title": "Options",
+            "type": "array"
+          },
+          "position": {
+            "title": "Position",
+            "type": "integer"
+          },
+          "prompt_md": {
+            "title": "Prompt Md",
+            "type": "string"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Tags",
+            "type": "array"
+          },
+          "topic": {
+            "title": "Topic",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "key",
+          "topic",
+          "position",
+          "prompt_md",
+          "tags",
+          "options",
+          "answer"
+        ],
+        "title": "QuestionOut",
+        "type": "object"
+      },
+      "SessionOut": {
+        "properties": {
+          "answered": {
+            "title": "Answered",
+            "type": "integer"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/Mode"
+          },
+          "plan": {
+            "items": {
+              "$ref": "#/components/schemas/StretchOut"
+            },
+            "title": "Plan",
+            "type": "array"
+          },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/QuestionOut"
+            },
+            "title": "Questions",
+            "type": "array"
+          },
+          "score": {
+            "title": "Score",
+            "type": "integer"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "mode",
+          "plan",
+          "started_at",
+          "finished_at",
+          "score",
+          "total",
+          "answered",
+          "questions"
+        ],
+        "title": "SessionOut",
+        "type": "object"
+      },
+      "SessionSummaryOut": {
+        "properties": {
+          "answered": {
+            "title": "Answered",
+            "type": "integer"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/Mode"
+          },
+          "score": {
+            "title": "Score",
+            "type": "integer"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "mode",
+          "started_at",
+          "finished_at",
+          "score",
+          "total",
+          "answered"
+        ],
+        "title": "SessionSummaryOut",
+        "type": "object"
+      },
+      "StretchIn": {
+        "additionalProperties": false,
+        "description": "Un tramo del plan. Los filtros se combinan con AND; los valores de una lista, con OR.",
+        "properties": {
+          "area": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Area"
+          },
+          "n": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Cuántas preguntas; ausente = todas",
+            "title": "N"
+          },
+          "order": {
+            "$ref": "#/components/schemas/Order",
+            "default": "random"
+          },
+          "tags": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Tags",
+            "type": "array"
+          },
+          "topic": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic"
+          },
+          "topics": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Topics",
+            "type": "array"
+          }
+        },
+        "title": "StretchIn",
+        "type": "object"
+      },
+      "StretchOut": {
+        "properties": {
+          "area": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Area"
+          },
+          "n": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "N"
+          },
+          "order": {
+            "$ref": "#/components/schemas/Order"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Tags",
+            "type": "array"
+          },
+          "topic": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic"
+          },
+          "topics": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Topics",
+            "type": "array"
+          }
+        },
+        "required": [
+          "topic",
+          "topics",
+          "area",
+          "tags",
+          "n",
+          "order"
+        ],
+        "title": "StretchOut",
+        "type": "object"
+      },
+      "TagOut": {
+        "properties": {
+          "question_count": {
+            "title": "Question Count",
+            "type": "integer"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          }
+        },
+        "required": [
+          "slug",
+          "question_count"
+        ],
+        "title": "TagOut",
+        "type": "object"
+      },
+      "TopicOut": {
+        "properties": {
+          "area": {
+            "title": "Area",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "question_count": {
+            "title": "Question Count",
+            "type": "integer"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          }
+        },
+        "required": [
+          "slug",
+          "name",
+          "area",
+          "question_count"
+        ],
+        "title": "TopicOut",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "Quiz API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/catalog": {
+      "get": {
+        "description": "Áreas, temas y tags, con cuántas preguntas activas tiene cada uno.",
+        "operationId": "catalog_catalog_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Catalog",
+        "tags": [
+          "catálogo"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Health Health Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health",
+        "tags": [
+          "salud"
+        ]
+      }
+    },
+    "/sessions": {
+      "get": {
+        "description": "Historial, de la más reciente a la más antigua.",
+        "operationId": "list_sessions_sessions_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SessionSummaryOut"
+                  },
+                  "title": "Response List Sessions Sessions Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Sessions",
+        "tags": [
+          "sesiones"
+        ]
+      },
+      "post": {
+        "description": "Elige las preguntas según el plan y las devuelve sin marcar la correcta.",
+        "operationId": "create_session_sessions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSessionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Session",
+        "tags": [
+          "sesiones"
+        ]
+      }
+    },
+    "/sessions/{session_id}": {
+      "get": {
+        "description": "Una sesión con el mismo orden de opciones que cuando se creó.",
+        "operationId": "get_session_sessions__session_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Session",
+        "tags": [
+          "sesiones"
+        ]
+      }
+    },
+    "/sessions/{session_id}/answers": {
+      "post": {
+        "description": "Registra la respuesta, la califica y devuelve la correcta con su explicación.",
+        "operationId": "answer_sessions__session_id__answers_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnswerIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnswerResultOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Answer",
+        "tags": [
+          "sesiones"
+        ]
+      }
+    }
+  }
+}

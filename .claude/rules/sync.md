@@ -17,7 +17,7 @@ El sync no es un proyecto aparte: es otro adaptador de entrada del backend (ver 
 - `application/sync_quiz.py`: caso de uso `SyncQuiz`. Puertos en `application/ports.py`: `QuizSource` y `CatalogRepository`.
 - `infrastructure/quiz_source.py`: `QuizFileSource`, el adaptador de `QuizSource`. Usa `quizfmt.load_tree()` para leer y validar. No reimplementes el parser: `quizfmt/` es la única implementación de la convención y está protegido.
 - `domain/catalog.py`: la regla de reconciliación (`Catalog.reconcile`), pura y sin I/O.
-- `infrastructure/catalog_repository.py`: repositorio SQLAlchemy y mapper dominio↔ORM.
+- `infrastructure/catalog_repository.py`: repositorio SQLAlchemy (el mapper dominio↔ORM está en `infrastructure/mappers.py`).
 - `cli/sync.py`: la entrada (`python -m app.cli.sync`). Lee `DATABASE_URL` y `QUIZ_DIR` (en Docker, `/quiz`, montado `:ro`).
 
 ## Reglas

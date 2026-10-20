@@ -37,6 +37,27 @@ services:
         condition: service_healthy
     restart: "no"
 
+  api:
+    image: quiz-app-backend
+    command: ["uvicorn", "app.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-quiz}:${POSTGRES_PASSWORD:-quiz}@db:5432/${POSTGRES_DB:-quiz}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173}
+    # Solo en localhost: lo consume el frontend desde el navegador.
+    ports:
+      - "127.0.0.1:${API_PORT:-8000}:8000"
+    healthcheck:
+      # python:slim no trae curl.
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    depends_on:
+      # Con `sync` terminado bien, el esquema está migrado y el quiz cargado.
+      sync:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
 volumes:
   # Guarda también el historial de sesiones, que no se puede reconstruir desde quiz/.
   # Nombre fijo para que renombrar la carpeta del proyecto no deje el volumen huérfano.
