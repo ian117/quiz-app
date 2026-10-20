@@ -10,3 +10,4 @@ dist/
 .env.*
 !.env.example
 .claude/settings.local.json
+quiz/
