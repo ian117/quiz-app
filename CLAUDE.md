@@ -5,7 +5,7 @@ Juego de opción múltiple (uso personal, sin login) para practicar las pregunta
 ## Mapa
 
 - `../ment-it-questions/`: repo privado con **todo el contenido**: prosa y `quiz/<categoria>/<tema>.md`, la fuente de verdad del quiz. Aquí es **solo lectura**. Lanza con `claude --add-dir ../ment-it-questions`.
-- La convención del quiz: `quizfmt/` (código) y la skill `quiz-format`, en `../ment-it-questions/.claude/skills/`.
+- La convención del quiz: la implementa `quizfmt/` (abajo) y la explica la skill `quiz-format`, en `../ment-it-questions/.claude/skills/`.
 - `quizfmt/`: parser y validador del quiz, compartido por los hooks y el sync. Protegido.
 - `backend/` (incluye el sync, que es un adaptador de entrada: `app/cli/sync.py`), `frontend/`, `docker-compose.yml`: cada uno tiene su regla en `.claude/rules/`, que se carga al tocarlo.
 - `docker compose up` levanta db → sync → api → web (existen los cuatro; el web en http://localhost:5173). El contrato de la API es `backend/openapi.json`.
