@@ -41,8 +41,8 @@ Si `ment-it-questions` está en otra ruta, exporta `QUIZ_SOURCE_DIR=/ruta/absolu
 
 | Qué | Comando |
 |---|---|
-| Convertir un lote de preguntas | `/convert-batch react 1-10` (dentro de Claude Code) |
-| Validar el quiz a mano | `python3 -m quizfmt` |
+| Escribir o convertir preguntas | En `ment-it-questions`: `/registrar-entrevista` o `tools/convert.py` |
+| Validar el quiz a mano | `python3 -m quizfmt ../ment-it-questions/quiz` |
 | Tests del parser | `python3 quizfmt/test_quizfmt.py` |
 | Levantar todo (`db`, `sync`, `api` y `web`) | `docker compose up` (juego en http://localhost:5173, API en http://localhost:8000, docs en `/docs`) |
 | Frontend en desarrollo | `cd frontend && npm ci && npm run dev` (con la API ya levantada) |
@@ -58,6 +58,6 @@ Los tests de integración usan la base `quiz_test`, nunca `quiz` (guarda el hist
 
 ## Estado
 
-Listo: el harness (reglas, skills, subagentes, hooks), el parser/validador, el modelo de datos con sus migraciones, el sync, la API y el frontend (`db`, `sync`, `api` y `web` en compose) y las preguntas de React convertidas hasta ahora.
+Listo: el harness (reglas, skills, subagentes, hooks), el parser/validador, el modelo de datos con sus migraciones, el sync, la API y el frontend (`db`, `sync`, `api` y `web` en compose).
 
-Pendiente: seguir convirtiendo lotes de React con `/convert-batch`.
+El quiz vive en el repo privado `ment-it-questions/quiz/` y compose lo monta en solo lectura (cámbialo con `QUIZ_HOST_DIR`).

@@ -10,4 +10,5 @@ dist/
 .env.*
 !.env.example
 .claude/settings.local.json
+# El quiz vive en ../ment-it-questions/quiz (privado). Si aparece aquí por error, que no se publique.
 quiz/

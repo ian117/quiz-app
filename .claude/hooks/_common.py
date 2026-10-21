@@ -7,9 +7,10 @@ import sys
 from pathlib import Path
 
 ROOT = Path(os.environ.get("CLAUDE_PROJECT_DIR") or Path(__file__).resolve().parents[2]).resolve()
-QUIZ = ROOT / "quiz"
 # Repo fuente: carpeta hermana por defecto; se puede cambiar con QUIZ_SOURCE_DIR.
 SOURCE = Path(os.environ.get("QUIZ_SOURCE_DIR") or ROOT.parent / "ment-it-questions").resolve()
+# El quiz vive en el repo fuente (privado); este repo es público.
+QUIZ = (SOURCE / "quiz").resolve()
 
 PROTECTED = [
     SOURCE,

@@ -19,7 +19,8 @@ services:
       retries: 30
     restart: unless-stopped
 
-  # Job de un solo uso: migra el esquema, sincroniza quiz/ y termina.
+  # Job de un solo uso: migra el esquema, sincroniza el quiz y termina.
+  # El quiz vive en el repo privado ment-it-questions (carpeta hermana), no en este repo público.
   # La misma imagen servirá para la api (otro comando).
   sync:
     image: quiz-app-backend
@@ -31,7 +32,7 @@ services:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-quiz}:${POSTGRES_PASSWORD:-quiz}@db:5432/${POSTGRES_DB:-quiz}
       QUIZ_DIR: /quiz
     volumes:
-      - ./quiz:/quiz:ro
+      - ${QUIZ_HOST_DIR:-../ment-it-questions/quiz}:/quiz:ro
     depends_on:
       db:
         condition: service_healthy
@@ -77,7 +78,7 @@ services:
     restart: unless-stopped
 
 volumes:
-  # Guarda también el historial de sesiones, que no se puede reconstruir desde quiz/.
+  # Guarda también el historial de sesiones, que no se puede reconstruir desde el quiz.
   # Nombre fijo para que renombrar la carpeta del proyecto no deje el volumen huérfano.
   # No uses `docker compose down -v` sin respaldo.
   pgdata:

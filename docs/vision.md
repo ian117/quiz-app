@@ -48,7 +48,7 @@ Cada archivo trae su propia leyenda, y **no son uniformes**:
 
 ## Regla de normalización (decidida)
 
-**Principio: se mapea por significado, no por símbolo.** El `question-converter` lee primero la leyenda de cada archivo y traduce según lo que dice. El mismo símbolo puede significar cosas distintas (el ⭐ de AWS).
+**Principio: se mapea por significado, no por símbolo.** El `question-converter` (en `ment-it-questions`) lee primero la leyenda de cada archivo y traduce según lo que dice. El mismo símbolo puede significar cosas distintas (el ⭐ de AWS).
 
 | Significado en la leyenda | Tag en el quiz | Casos actuales |
 |---|---|---|
@@ -70,21 +70,21 @@ Cada archivo trae su propia leyenda, y **no son uniformes**:
 ## Flujo
 
 ```
-ment-it-questions (privado)        repo quiz-app
-  prosa ──agentes (Claude Code)──▶  quiz/<categoria>/<tema>.md ──sync──▶ Postgres ──FastAPI──▶ React
-  en el host                        fuente de verdad del quiz          volumen     sesiones y   juego
-                                                                       Docker      calificación
+ment-it-questions (privado: contenido)                  quiz-app (público: código)
+  prosa ──agentes──▶ quiz/<categoria>/<tema>.md  ──:ro──▶  sync ──▶ Postgres ──FastAPI──▶ React
+  real-interviews     fuente de verdad del quiz             volumen     sesiones y   juego
+                                                            Docker      calificación
 ```
 
-1. **Conversión, fuera de Docker:** los agentes leen la prosa y escriben `quiz/`. Corre en Claude Code, en el host, con `/convert-batch`.
-2. **Markdown = fuente de verdad del quiz.** `quiz/` replica la clasificación del repo fuente: `quiz/frontend/react.md` da `area=frontend` y `topic=react`.
+1. **Escribir el quiz, en `ment-it-questions`:** todo el contenido vive en el repo privado. Al registrar una entrevista (`/registrar-entrevista`), el mismo agente escribe la entrada en `real-interviews/` y su bloque en `quiz/`, mientras tiene la respuesta en contexto. La prosa que ya existía se convierte una vez con `tools/convert.py` (un lote por sesión). El porqué y el costo medido están en `ment-it-questions/docs/conversion.md`.
+2. **Markdown = fuente de verdad del quiz.** `ment-it-questions/quiz/` replica la clasificación del repo fuente: `quiz/frontend/react.md` da `area=frontend` y `topic=react`. Este repo es público, así que no guarda el quiz: compose monta `../ment-it-questions/quiz` en solo lectura (`QUIZ_HOST_DIR` para otra ruta). No hace falta un tercer repo: la DB se reconstruye desde el quiz, y el historial se respalda desde el volumen.
 3. **`sync`:** es otro adaptador de entrada del backend, no un proyecto aparte. El caso de uso `SyncQuiz` (en `application/`) usa el puerto `QuizSource`, que `infrastructure/quiz_source.py` implementa con `quizfmt` (parsea y valida), y la entrada es `app/cli/sync.py`. Hace upsert por `key`. Lo que ya no está se marca como retirado (no se borra). Es idempotente. Corre al levantar compose y también a mano con `docker compose run --rm sync`.
 4. **Backend FastAPI:** capas/hexagonal y SQLAlchemy 2.0 con mapper. Arma las sesiones, registra las respuestas y califica. Es el dueño del esquema (modelos ORM y migraciones de Alembic).
 5. **Frontend React:** gamificado, rápido y con un look moderno.
 
 ## Convención del markdown del quiz
 
-La implementación es `quizfmt/` y el detalle para los agentes está en la skill `quiz-format`.
+La implementación es `quizfmt/` (en este repo) y el detalle para los agentes está en la skill `quiz-format` (en `ment-it-questions`).
 
 ```md
 ## react-virtual-dom
@@ -198,12 +198,12 @@ Como el backend registra las respuestas, también califica. Se resuelve gratis e
 | Servicio | Qué hace | Arranca cuando |
 |---|---|---|
 | `db` | Postgres con sus datos en un volumen nombrado | Primero, con healthcheck |
-| `sync` | Job de un solo uso, con la imagen del backend: `alembic upgrade head && python -m app.cli.sync`. Lee `quiz/` (montado `:ro`), hace upsert y termina | `db` sano |
+| `sync` | Job de un solo uso, con la imagen del backend: `alembic upgrade head && python -m app.cli.sync`. Lee el quiz de `ment-it-questions` (montado `:ro`), hace upsert y termina | `db` sano |
 | `api` | FastAPI, con la imagen del backend; healthcheck en `/health`; puerto solo en localhost | `sync` terminó bien |
 | `web` | React | `api` arriba |
 
 - **Las preguntas en la DB son desechables:** se reconstruyen desde `quiz/`. **El historial no**, así que el volumen se protege y se respalda. Nada de `down -v` sin respaldo.
-- **El repo fuente no entra a Docker.** Se clona en el host con la SSH que ya funciona (`git clone git@github.com:ian117/ment-it-questions.git ../ment-it-questions`). Así no hay llaves en imágenes ni hay que reconstruir para actualizar.
+- **El repo fuente no entra a Docker, salvo `quiz/` en solo lectura.** Se clona en el host con la SSH que ya funciona (`git clone git@github.com:ian117/ment-it-questions.git ../ment-it-questions`). Así no hay llaves en imágenes ni hay que reconstruir para actualizar.
 - Docker tiene como máximo 8 GB: los cuatro servicios caben de sobra.
 
 ## Decisiones tomadas
@@ -216,8 +216,8 @@ Como el backend registra las respuestas, también califica. Se resuelve gratis e
 - **Harness aplicado** (detalle en `docs/harness.md`):
   - `CLAUDE.md` corto.
   - Reglas por carpeta con `paths`.
-  - Skills `quiz-format` (precargada en los subagentes) y `convert-batch` (solo la invoca la persona).
-  - Subagentes `question-converter`, `quiz-reviewer` y `ux-reviewer`, con `omitClaudeMd`.
+  - Aquí: el subagente `ux-reviewer`, con `omitClaudeMd`.
+  - En `ment-it-questions`: skills `quiz-format`, `registrar-entrevista` y `convert-batch`, y subagentes `question-converter` y `quiz-reviewer`.
   - Hooks `PreToolUse`, `PostToolUse` y `Stop`.
 - **Preferencias personales** (español, breve, analogías, explicar el porqué, preguntar antes de decidir) en `~/.claude/CLAUDE.md`. No hay procedimiento de cierre con preguntas de entrevista: aquí se practica usando la app.
 
@@ -230,7 +230,7 @@ Como el backend registra las respuestas, también califica. Se resuelve gratis e
 
 ## Siguiente paso (en el host)
 
-1. Lotes de React con `/convert-batch react 1-10`, y así sucesivamente.
+1. Mover `quiz/` a `ment-it-questions` (guía: `ment-it-questions/docs/migracion-quiz.md`) y completar con `tools/convert.py` los temas o rangos que falten.
 2. ~~`docker-compose.yml` + `sync` + el modelo de datos.~~ Hecho (el sync vive en `backend/`).
 3. ~~Backend: la API sobre el mismo esquema.~~ Hecho (`api` en compose; contrato en `backend/openapi.json`).
 4. ~~Frontend.~~ Hecho (`web` en compose; ver "Frontend").
