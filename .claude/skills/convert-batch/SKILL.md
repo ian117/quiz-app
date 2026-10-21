@@ -1,26 +1,23 @@
 ---
 name: convert-batch
-description: Convierte un lote de preguntas del repo fuente al quiz y las revisa de forma imparcial. Ejemplo - /convert-batch react 1-10
-argument-hint: <tema> <rango>
+description: Convierte un lote ya extraído del repo fuente al quiz y lo revisa de forma imparcial. Normalmente lo lanza tools/convert.py, un lote por sesión. Ejemplo - /convert-batch .convert/react-1-10.md quiz/frontend/react.md
+argument-hint: <extracto> <destino>
 disable-model-invocation: true
 ---
 
 # Convertir un lote: $ARGUMENTS
 
-1. **Ubica el archivo fuente** del tema en `../ment-it-questions/100-interview-questions/<categoria>/<area>/` (o en `real-interviews/<categoria>/<tema>.md` si se pide un lote de entrevistas reales). Si hay más de un candidato o ninguno, pregunta.
-2. **Destino:** `quiz/<categoria>/<tema>.md`, con la misma categoría que el fuente.
-3. **Invoca `question-converter`** con:
-   - la ruta del fuente,
-   - el rango pedido (los números del fuente),
-   - el destino,
-   - y la leyenda del archivo fuente copiada tal cual.
+Tu papel es **coordinar, no leer**. El costo de este flujo depende de que el contexto de cada agente sea pequeño.
 
-   No le pases nada más de esta conversación.
-4. **Invoca `quiz-reviewer`** con el destino, la lista de keys que devolvió el converter y la ruta del fuente. No le cuentes cómo se generaron.
-5. **Si hay `FAIL`,** reinvoca `question-converter` solo con esas keys y el detalle del revisor. Máximo 2 vueltas.
-6. **Responde a la persona con:**
-   - una tabla `key | veredicto final | nota`;
+1. **Argumentos:** `<extracto>` (`.convert/<tema>-<a>-<b>.md`, con la leyenda y solo las preguntas del lote) y `<destino>` (`quiz/<categoria>/<tema>.md`).
+   - Si recibes tema y rango en lugar de un extracto, no busques el fuente tú: dile a la persona que use `python3 tools/convert.py <fuente> <categoria>/<tema> --lotes <rango>` y termina.
+   - **No leas el extracto, el fuente ni el destino.** Solo pasa las rutas.
+2. **Invoca `question-converter`** con el extracto y el destino. No le pases nada más de esta conversación.
+3. **Invoca `quiz-reviewer`** con el extracto, el destino y la lista de keys que devolvió el converter. No le cuentes cómo se generaron.
+4. **Si hay `FAIL`,** reinvoca `question-converter` solo con esas keys y el detalle del revisor. Luego reinvoca `quiz-reviewer` **solo con esas keys**. Máximo 2 vueltas.
+5. **Responde, breve:**
+   - una tabla `key | veredicto final | nota` (nota solo si no es PASS limpio);
    - las leyendas o marcas que el converter no supo traducir;
-   - las preguntas que siguen en `FAIL` después de 2 vueltas, para que decida ella.
+   - las preguntas que siguen en `FAIL` tras 2 vueltas, para que decida la persona.
 
-No hagas commit: la persona revisa el lote y estudia las preguntas antes.
+No hagas commit y no ejecutes nada más: la persona revisa el lote y estudia las preguntas antes.

@@ -7,6 +7,7 @@ Juego de opción múltiple (uso personal, sin login) para practicar las pregunta
 - `../ment-it-questions/`: repo fuente (prosa), **solo lectura**. Lanza con `claude --add-dir ../ment-it-questions`.
 - `quiz/<categoria>/<tema>.md`: fuente de verdad del quiz. La convención está en la skill `quiz-format`.
 - `quizfmt/`: parser y validador del quiz, compartido por los hooks y el sync. Protegido.
+- `tools/`: `convert.py` convierte un tema por lotes, cada uno en una sesión nueva; `extract_batch.py` saca un lote del fuente a `.convert/` (no versionado).
 - `backend/` (incluye el sync, que es un adaptador de entrada: `app/cli/sync.py`), `frontend/`, `docker-compose.yml`: cada uno tiene su regla en `.claude/rules/`, que se carga al tocarlo.
 - `docker compose up` levanta db → sync → api → web (existen los cuatro; el web en http://localhost:5173). El contrato de la API es `backend/openapi.json`.
 
@@ -14,7 +15,7 @@ Juego de opción múltiple (uso personal, sin login) para practicar las pregunta
 
 - Tú construyes backend (con el sync) y frontend **en secuencia**: comparten el contrato (modelo y OpenAPI). No los delegues a subagentes.
 - Los subagentes son solo para tareas independientes o verificación imparcial: `question-converter`, `quiz-reviewer`, `ux-reviewer`.
-- Convierte preguntas solo cuando la persona ejecute `/convert-batch`.
+- Convierte preguntas solo cuando la persona ejecute `tools/convert.py` o `/convert-batch`. Un lote por sesión: no orquestes varios lotes en la misma.
 - Hay decisiones abiertas (por ejemplo, la librería de componentes): pregunta antes de decidirlas. Están listadas en `docs/vision.md`.
 - Por qué el harness es así: `docs/harness.md`.
 

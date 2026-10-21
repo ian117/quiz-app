@@ -76,7 +76,7 @@ ment-it-questions (privado)        repo quiz-app
                                                                        Docker      calificación
 ```
 
-1. **Conversión, fuera de Docker:** los agentes leen la prosa y escriben `quiz/`. Corre en Claude Code, en el host, con `/convert-batch`.
+1. **Conversión, fuera de Docker:** los agentes leen la prosa y escriben `quiz/`. Corre en el host con `python3 tools/convert.py`, que lanza una sesión de Claude Code (`/convert-batch`) por lote.
 2. **Markdown = fuente de verdad del quiz.** `quiz/` replica la clasificación del repo fuente: `quiz/frontend/react.md` da `area=frontend` y `topic=react`.
 3. **`sync`:** es otro adaptador de entrada del backend, no un proyecto aparte. El caso de uso `SyncQuiz` (en `application/`) usa el puerto `QuizSource`, que `infrastructure/quiz_source.py` implementa con `quizfmt` (parsea y valida), y la entrada es `app/cli/sync.py`. Hace upsert por `key`. Lo que ya no está se marca como retirado (no se borra). Es idempotente. Corre al levantar compose y también a mano con `docker compose run --rm sync`.
 4. **Backend FastAPI:** capas/hexagonal y SQLAlchemy 2.0 con mapper. Arma las sesiones, registra las respuestas y califica. Es el dueño del esquema (modelos ORM y migraciones de Alembic).
@@ -230,7 +230,7 @@ Como el backend registra las respuestas, también califica. Se resuelve gratis e
 
 ## Siguiente paso (en el host)
 
-1. Lotes de React con `/convert-batch react 1-10`, y así sucesivamente.
+1. Lotes con `python3 tools/convert.py <fuente> <categoria>/<tema> --lotes 1-10` (o `--todo`). Ver "Costo de la conversión" en `docs/harness.md`.
 2. ~~`docker-compose.yml` + `sync` + el modelo de datos.~~ Hecho (el sync vive en `backend/`).
 3. ~~Backend: la API sobre el mismo esquema.~~ Hecho (`api` en compose; contrato en `backend/openapi.json`).
 4. ~~Frontend.~~ Hecho (`web` en compose; ver "Frontend").

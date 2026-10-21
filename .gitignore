@@ -11,3 +11,4 @@ dist/
 !.env.example
 .claude/settings.local.json
 quiz/
+.convert/

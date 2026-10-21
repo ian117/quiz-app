@@ -30,7 +30,7 @@ Analogía: un edificio de oficinas.
 
 | Subagente | Por qué es un subagente |
 |---|---|
-| `question-converter` | Tarea independiente y repetitiva. Se queda con la prosa larga del fuente, que si no llenaría el contexto del principal, y devuelve solo keys |
+| `question-converter` | Tarea independiente y repetitiva. Lee el extracto del lote (no el fuente completo), lo convierte y devuelve solo keys |
 | `quiz-reviewer` | Verificación imparcial: no vio la generación y no puede escribir, así que solo dictamina |
 | `ux-reviewer` | Verificación imparcial: quien escribió la UI no califica su propia UX |
 
@@ -53,6 +53,22 @@ Analogía: un edificio de oficinas.
 ## `quizfmt/`: una sola implementación de la convención
 
 El parser lo usan los hooks y el sync. Así, lo que valida el hook es exactamente lo que entra a la DB. Está protegido: si la convención cambia, la cambia la persona, y luego se actualizan la skill `quiz-format` y `docs/vision.md`.
+
+## Costo de la conversión
+
+**Medición (20 oct 2026):** convertir casi todo el quiz en una sola sesión agotó el límite de 5 horas. Fueron 379 llamadas del principal (en Sonnet), unos 70 subagentes, 137 M tokens de `cache_read` y 17.8 M de `cache_creation`. Un 50% fue del principal y otro 50% de los subagentes.
+
+| Causa | Por qué cuesta | Arreglo |
+|---|---|---|
+| Un principal orquesta todos los lotes | Cada resultado se queda en su contexto, y la llamada N relee las N-1 anteriores: el costo crece al cuadrado | `tools/convert.py`: el bucle es Python y cada lote es un `claude -p` nuevo, con el contexto vacío |
+| Cada agente lee el fuente completo (50-77 preguntas) y el destino completo | Unos 100 k tokens por agente solo para arrancar | `tools/extract_batch.py` deja leyenda + lote en `.convert/`; el revisor lee solo sus keys con `Grep` |
+| El converter edita pregunta por pregunta | Cada `Edit` es otra llamada que relee todo su contexto | Un solo `Write`/`Edit` por lote; luego solo arreglos puntuales |
+| La segunda vuelta revisa el lote entero | Duplica el revisor | Solo se re-revisan las keys en `FAIL` |
+| `TELL` se cruzaba con la regla de largo del hook | El revisor reprobaba lo que el hook ya aceptaba, y eso disparaba vueltas | `TELL` ya no juzga el largo |
+
+Analogía: antes, un solo mesero atendía toda la noche y releía todos los tickets del día antes de cada pedido. Ahora cada mesa tiene una comanda nueva.
+
+**Para medir:** `--output-format json` deja `total_cost_usd` por lote en `.convert/<tema>-<a>-<b>.json`, y `convert.py` imprime el total.
 
 ## Límites conocidos
 
